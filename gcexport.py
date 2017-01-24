@@ -293,31 +293,31 @@ while total_downloaded < total_to_download:
 		csv_record += '\n'
 
 		csv_file.write(csv_record.encode('utf8'))
+		if len(data) != 0 :
+			if args.format == 'gpx':
+				# Validate GPX data. If we have an activity without GPS data (e.g., running on a treadmill),
+				# Garmin Connect still kicks out a GPX, but there is only activity information, no GPS data.
+				# N.B. You can omit the XML parse (and the associated log messages) to speed things up.
+				gpx = parseString(data)
+				gpx_data_exists = len(gpx.getElementsByTagName('trkpt')) > 0
 
-		if args.format == 'gpx':
-			# Validate GPX data. If we have an activity without GPS data (e.g., running on a treadmill),
-			# Garmin Connect still kicks out a GPX, but there is only activity information, no GPS data.
-			# N.B. You can omit the XML parse (and the associated log messages) to speed things up.
-			gpx = parseString(data)
-			gpx_data_exists = len(gpx.getElementsByTagName('trkpt')) > 0
-
-			if gpx_data_exists:
-				print 'Done. GPX data saved.'
+				if gpx_data_exists:
+					print 'Done. GPX data saved.'
+				else:
+					print 'Done. No track points found.'
+			elif args.format == 'original':
+				if args.unzip and data_filename[-3:].lower() == 'zip':  # Even manual upload of a GPX file is zipped, but we'll validate the extension.
+					print "Unzipping and removing original files...",
+					zip_file = open(data_filename, 'rb')
+					z = zipfile.ZipFile(zip_file)
+					for name in z.namelist():
+						z.extract(name, args.directory)
+					zip_file.close()
+					remove(data_filename)
+				print 'Done.'
 			else:
-				print 'Done. No track points found.'
-		elif args.format == 'original':
-			if args.unzip and data_filename[-3:].lower() == 'zip':  # Even manual upload of a GPX file is zipped, but we'll validate the extension.
-				print "Unzipping and removing original files...",
-				zip_file = open(data_filename, 'rb')
-				z = zipfile.ZipFile(zip_file)
-				for name in z.namelist():
-					z.extract(name, args.directory)
-				zip_file.close()
-				remove(data_filename)
-			print 'Done.'
-		else:
-			# TODO: Consider validating other formats.
-			print 'Done.'
+				# TODO: Consider validating other formats.
+				print 'Done.'
 	total_downloaded += num_to_download
 # End while loop for multiple chunks.
 
