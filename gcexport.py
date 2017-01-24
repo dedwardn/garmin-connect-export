@@ -180,7 +180,7 @@ while total_downloaded < total_to_download:
 		# Display which entry we're working on.
 		print 'Garmin Connect activity: [' + a['activity']['activityId'] + ']',
 		print a['activity']['activityName']['value']
-		print '\t' + a['activity']['beginTimestamp']['display'] + ',',
+		print '\t' + a['activity']['beginTimestamp']['display'].encode('utf-8') + ',',
 		if 'sumElapsedDuration' in a['activity']:
 			print a['activity']['sumElapsedDuration']['display'] + ',',
 		else:
