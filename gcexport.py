@@ -182,7 +182,7 @@ while total_downloaded < total_to_download:
 		else:
 			print '??:??:??,',
 		if 'sumDistance' in a['activity']:
-			print a['activity']['sumDistance']['withUnit']
+			print a['activity']['sumDistance']['withUnit'].encode('utf-8')
 		else:
 			print '0.00 Miles'
 
