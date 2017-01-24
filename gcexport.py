@@ -70,6 +70,10 @@ def http_req(url, post=None, headers={}):
 	response = opener.open(request, data=post)  # This line may throw a urllib2.HTTPError.
 
 	# N.B. urllib2 will follow any 302 redirects. Also, the "open" call above may throw a urllib2.HTTPError which is checked for below.
+	if response.getcode() == 204:
+		print '        No content here'
+		return response.read()
+
 	if response.getcode() != 200:
 		raise Exception('Bad return code (' + str(response.getcode()) + ') for: ' + url)
 
@@ -231,9 +235,10 @@ while total_downloaded < total_to_download:
 				# Write an empty file to prevent redownloading it.
 				print 'Writing empty file since there was no original activity data...',
 				data = ''
-			elif e.code()
 			else:
 				raise Exception('Failed. Got an unexpected HTTP error (' + str(e.code) + ').')
+		
+
 
 		save_file = open(data_filename, file_mode)
 		save_file.write(data)
