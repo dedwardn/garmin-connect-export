@@ -70,8 +70,12 @@ def http_req(url, post=None, headers={}):
 	response = opener.open(request, data=post)  # This line may throw a urllib2.HTTPError.
 
 	# N.B. urllib2 will follow any 302 redirects. Also, the "open" call above may throw a urllib2.HTTPError which is checked for below.
+	if response.getcode() == 204:
+		print '        No content here'
+		return response.read()
+
 	if response.getcode() != 200:
-		raise Exception('Bad return code (' + response.getcode() + ') for: ' + url)
+		raise Exception('Bad return code (' + str(response.getcode()) + ') for: ' + url)
 
 	return response.read()
 
@@ -176,13 +180,13 @@ while total_downloaded < total_to_download:
 		# Display which entry we're working on.
 		print 'Garmin Connect activity: [' + a['activity']['activityId'] + ']',
 		print a['activity']['activityName']['value']
-		print '\t' + a['activity']['beginTimestamp']['display'] + ',',
+		print '\t' + a['activity']['beginTimestamp']['display'].encode('utf-8') + ',',
 		if 'sumElapsedDuration' in a['activity']:
 			print a['activity']['sumElapsedDuration']['display'] + ',',
 		else:
 			print '??:??:??,',
 		if 'sumDistance' in a['activity']:
-			print a['activity']['sumDistance']['withUnit']
+			print a['activity']['sumDistance']['withUnit'].encode('utf-8')
 		else:
 			print '0.00 Miles'
 
@@ -233,6 +237,8 @@ while total_downloaded < total_to_download:
 				data = ''
 			else:
 				raise Exception('Failed. Got an unexpected HTTP error (' + str(e.code) + ').')
+		
+
 
 		save_file = open(data_filename, file_mode)
 		save_file.write(data)
@@ -287,31 +293,31 @@ while total_downloaded < total_to_download:
 		csv_record += '\n'
 
 		csv_file.write(csv_record.encode('utf8'))
+		if len(data) != 0 :
+			if args.format == 'gpx':
+				# Validate GPX data. If we have an activity without GPS data (e.g., running on a treadmill),
+				# Garmin Connect still kicks out a GPX, but there is only activity information, no GPS data.
+				# N.B. You can omit the XML parse (and the associated log messages) to speed things up.
+				gpx = parseString(data)
+				gpx_data_exists = len(gpx.getElementsByTagName('trkpt')) > 0
 
-		if args.format == 'gpx':
-			# Validate GPX data. If we have an activity without GPS data (e.g., running on a treadmill),
-			# Garmin Connect still kicks out a GPX, but there is only activity information, no GPS data.
-			# N.B. You can omit the XML parse (and the associated log messages) to speed things up.
-			gpx = parseString(data)
-			gpx_data_exists = len(gpx.getElementsByTagName('trkpt')) > 0
-
-			if gpx_data_exists:
-				print 'Done. GPX data saved.'
+				if gpx_data_exists:
+					print 'Done. GPX data saved.'
+				else:
+					print 'Done. No track points found.'
+			elif args.format == 'original':
+				if args.unzip and data_filename[-3:].lower() == 'zip':  # Even manual upload of a GPX file is zipped, but we'll validate the extension.
+					print "Unzipping and removing original files...",
+					zip_file = open(data_filename, 'rb')
+					z = zipfile.ZipFile(zip_file)
+					for name in z.namelist():
+						z.extract(name, args.directory)
+					zip_file.close()
+					remove(data_filename)
+				print 'Done.'
 			else:
-				print 'Done. No track points found.'
-		elif args.format == 'original':
-			if args.unzip and data_filename[-3:].lower() == 'zip':  # Even manual upload of a GPX file is zipped, but we'll validate the extension.
-				print "Unzipping and removing original files...",
-				zip_file = open(data_filename, 'rb')
-				z = zipfile.ZipFile(zip_file)
-				for name in z.namelist():
-					z.extract(name, args.directory)
-				zip_file.close()
-				remove(data_filename)
-			print 'Done.'
-		else:
-			# TODO: Consider validating other formats.
-			print 'Done.'
+				# TODO: Consider validating other formats.
+				print 'Done.'
 	total_downloaded += num_to_download
 # End while loop for multiple chunks.
 
