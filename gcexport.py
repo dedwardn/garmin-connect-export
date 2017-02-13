@@ -201,6 +201,7 @@ while total_downloaded < total_to_download:
 		elif args.format == 'original':
 			data_filename = args.directory + '/activity_' + a['activity']['activityId'] + '.zip'
 			fit_filename = args.directory + '/' + a['activity']['activityId'] + '.fit'
+			gpx_filename = args.directory + '/' + a['activity']['activityId'] + '.gpx'
 			download_url = url_gc_original_activity + a['activity']['activityId']
 			file_mode = 'wb'
 		else:
@@ -209,8 +210,7 @@ while total_downloaded < total_to_download:
 		if isfile(data_filename):
 			print '\tData file already exists; skipping...'
 			continue
-		if args.format == 'original' and isfile(fit_filename):  # Regardless of unzip setting, don't redownload if the ZIP or FIT file exists.
-			print '\tFIT data file already exists; skipping...'
+			print '\tFIT or GPX data file already exists; skipping...'
 			continue
 
 		# Download the data file from Garmin Connect.
