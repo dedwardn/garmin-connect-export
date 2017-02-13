@@ -210,6 +210,7 @@ while total_downloaded < total_to_download:
 		if isfile(data_filename):
 			print '\tData file already exists; skipping...'
 			continue
+		if args.format == 'original' and (isfile(fit_filename) or isfile(gpx_filename)):  # Regardless of unzip setting, don't redownload if the ZIP, FIT or GPX file exists.
 			print '\tFIT or GPX data file already exists; skipping...'
 			continue
 
